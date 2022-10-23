@@ -1,74 +1,91 @@
+use std::str::FromStr;
+
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (i32, i32) {
-    let part1 = part1();
-    let part2 = part2();
-
-    (part1, part2)
+pub fn solution() -> (u64, u64) {
+    (part1(), part2())
 }
 
-pub fn part2() -> i32 {
-    let commands = read_one_per_line::<String>("./src/day_2/part2.txt").unwrap();
-
-    let mut x = 0;
-    let mut y = 0;
-    let mut aim = 0;
-
-    for command in commands {
-        if command == "" {
-            continue
-        }
-
-        let splitted_command: Vec<&str> = command.split::<&str>(" ").collect();
-        let dimension = splitted_command[0];
-        let units: i32 = splitted_command[1].parse().unwrap();
-
-        match dimension {
-            "forward" => {
-                x += units;
-                y += aim * units;
-            }
-            "down" => {
-                aim += units;
-            }
-            "up" => {
-                aim -= units;
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    x * y
+struct Coord {
+    x: u64,
+    y: u64,
+    aim: u64,
 }
 
-pub fn part1() -> i32 {
-    let commands = read_one_per_line::<String>("./src/day_2/part1.txt").unwrap();
-
-    let mut x = 0;
-    let mut y = 0;
-
-    for command in commands {
-        if command == "" {
-            continue
-        }
-
-        let splitted_command: Vec<&str> = command.split::<&str>(" ").collect();
-        let dimension = splitted_command[0];
-        let units: i32 = splitted_command[1].parse().unwrap();
-
-        match dimension {
-            "forward" => {
-                x += units;
-            }
-            "down" => {
-                y += units;
-            }
-            "up" => {
-                y -= units;
-            }
-            _ => unreachable!(),
-        }
+impl Coord {
+    pub fn new() -> Self {
+        Self { x: 0, y: 0, aim: 0 }
     }
 
-    x * y
+    fn mult(&self) -> u64 {
+        self.x * self.y
+    }
+}
+
+enum Command {
+    Forward(u64),
+    Down(u64),
+    Up(u64),
+}
+
+impl FromStr for Command {
+    type Err = String;
+
+    fn from_str(raw_command: &str) -> Result<Self, String> {
+        if let Some((direction, units)) = raw_command.split_once(" ") {
+            let units = units.parse().unwrap();
+
+            Ok(match direction {
+                "forward" => Command::Forward(units),
+                "down" => Command::Down(units),
+                "up" => Command::Up(units),
+                _ => panic!("Unhandled direction"),
+            })
+        } else {
+            Err("Couldn't format command".to_string())
+        }
+    }
+}
+
+pub fn part1() -> u64 {
+    let commands = read_one_per_line::<Command>("./src/day_2/part1.txt").unwrap();
+    commands
+        .iter()
+        .fold(Coord::new(), |coord, command| match command {
+            Command::Forward(units) => Coord {
+                x: coord.x + units,
+                ..coord
+            },
+            Command::Down(units) => Coord {
+                y: coord.y + units,
+                ..coord
+            },
+            Command::Up(units) => Coord {
+                y: coord.y - units,
+                ..coord
+            },
+        })
+        .mult()
+}
+
+pub fn part2() -> u64 {
+    let commands = read_one_per_line::<Command>("./src/day_2/part2.txt").unwrap();
+    commands
+        .iter()
+        .fold(Coord::new(), |coord, command| match command {
+            Command::Forward(units) => Coord {
+                x: coord.x + units,
+                y: coord.y + coord.aim * units,
+                ..coord
+            },
+            Command::Down(units) => Coord {
+                aim: coord.aim + units,
+                ..coord
+            },
+            Command::Up(units) => Coord {
+                aim: coord.aim - units,
+                ..coord
+            },
+        })
+        .mult()
 }
