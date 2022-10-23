@@ -1,49 +1,38 @@
-use std::collections::HashMap;
-
 use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (i32, i32) {
-    (part1(), part2())
+    let binaries = read_one_per_line::<String>("./src/day_3/input.txt").unwrap();
+    (part1(&binaries), part2(&binaries))
 }
 
-fn part2() -> i32 {
-    let binaries = read_one_per_line::<String>("./src/day_3/part2.txt").unwrap();
+fn part2(binaries: &Vec<String>) -> i32 {
     let cols: usize = binaries[0].len();
-    let mut bit_by_col_idx: Vec<ColumnBit> = vec![ColumnBit::new(); cols];
-    let mut bytes_by_idx = HashMap::new();
-    let mut bytes = vec![];
 
-    for (bin_idx, binary) in binaries.into_iter().enumerate() {
-        let bits = get_bits(binary);
-        bytes.push(bits.clone());
-        bytes_by_idx.insert(bin_idx, bits.clone());
-        for (idx, bit) in bits.into_iter().enumerate() {
-            match bit {
-                Bit::Zero => bit_by_col_idx[idx].zeroes += 1,
-                Bit::One => bit_by_col_idx[idx].ones += 1,
-            }
-        }
-    }
-    println!("{:?}", bit_by_col_idx);
-    println!("-----------------");
+    let bytes: Vec<Vec<Bit>> = binaries
+        .clone()
+        .into_iter()
+        .filter(|binary| binary != "")
+        .map(|binary| get_bits(binary))
+        .collect();
 
     let oxygen_renerator_rating = parse_int(calculate_oxygen_renerator_rating(
         bytes.clone(),
-        &bit_by_col_idx,
+        &bytes,
+        &cols,
     ));
-    let c02_scrubber_rating = parse_int(calculate_c02_scrubber_rating(
-        bytes.clone(),
-        &bit_by_col_idx,
-    ));
+    let c02_scrubber_rating =
+        parse_int(calculate_c02_scrubber_rating(bytes.clone(), &bytes, &cols));
 
     oxygen_renerator_rating * c02_scrubber_rating
 }
 
 fn calculate_c02_scrubber_rating(
     mut remaining: Vec<Vec<Bit>>,
-    bit_by_col_idx: &Vec<ColumnBit>,
+    bytes: &Vec<Vec<Bit>>,
+    length: &usize,
 ) -> Vec<Bit> {
     let mut idx = 0;
+    let mut bit_by_col_idx: Vec<ColumnBit> = bits_by_col_idx(&bytes, &length.clone());
     loop {
         let bits = &bit_by_col_idx[idx];
 
@@ -74,17 +63,20 @@ fn calculate_c02_scrubber_rating(
         if remaining.len() == 1 {
             return remaining[0].clone();
         }
+
+        bit_by_col_idx = bits_by_col_idx(&remaining, &length.clone());
     }
 }
 
 fn calculate_oxygen_renerator_rating(
     mut remaining: Vec<Vec<Bit>>,
-    bit_by_col_idx: &Vec<ColumnBit>,
+    bytes: &Vec<Vec<Bit>>,
+    length: &usize,
 ) -> Vec<Bit> {
     let mut idx = 0;
+    let mut bit_by_col_idx: Vec<ColumnBit> = bits_by_col_idx(&bytes, &length.clone());
     loop {
         let bits = &bit_by_col_idx[idx];
-        println!("{:?}", bits);
         if bits.zeroes > bits.ones {
             remaining.retain(|byte| {
                 if byte.len() == 0 {
@@ -109,24 +101,22 @@ fn calculate_oxygen_renerator_rating(
             })
         }
 
-        println!("{:?}", remaining);
-        println!("------------");
-
         idx += 1;
 
         if remaining.len() == 1 {
             return remaining[0].clone();
         }
+
+        bit_by_col_idx = bits_by_col_idx(&remaining, &length.clone());
     }
 }
 
-fn part1() -> i32 {
-    let binaries = read_one_per_line::<String>("./src/day_3/part1.txt").unwrap();
+fn part1(binaries: &Vec<String>) -> i32 {
     let cols: usize = binaries[0].len();
     let mut bit_by_col_idx: Vec<ColumnBit> = vec![ColumnBit::new(); cols];
 
     for (_bin_idx, binary) in binaries.into_iter().enumerate() {
-        let bits = get_bits(binary);
+        let bits = get_bits(binary.clone());
         for (idx, bit) in bits.into_iter().enumerate() {
             match bit {
                 Bit::Zero => bit_by_col_idx[idx].zeroes += 1,
@@ -184,8 +174,17 @@ fn epsilon_byte(bites: &Vec<ColumnBit>) -> Vec<Bit> {
     })
 }
 
-fn bits_by_col_idx() {
-
+fn bits_by_col_idx(bytes: &Vec<Vec<Bit>>, length: &usize) -> Vec<ColumnBit> {
+    let mut bit_by_col_idx: Vec<ColumnBit> = vec![ColumnBit::new(); length.clone()];
+    for byte in bytes.into_iter() {
+        for (idx, bit) in byte.into_iter().enumerate() {
+            match bit {
+                Bit::Zero => bit_by_col_idx[idx].zeroes += 1,
+                Bit::One => bit_by_col_idx[idx].ones += 1,
+            }
+        }
+    }
+    bit_by_col_idx
 }
 
 #[derive(Clone, Debug)]
