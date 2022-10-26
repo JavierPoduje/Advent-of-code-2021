@@ -18,9 +18,25 @@ impl Coord {
             y: pair[1],
         }
     }
+
+    pub fn move_to(&mut self, other: &Coord) {
+        // move x
+        if self.x > other.x {
+            self.x -= 1;
+        } else if self.x < other.x {
+            self.x += 1;
+        }
+
+        // move y
+        if self.y > other.y {
+            self.y -= 1;
+        } else if self.y < other.y {
+            self.y += 1;
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Movement {
     start: Coord,
     end: Coord,
@@ -35,50 +51,42 @@ impl Movement {
     }
 }
 
-pub fn solution() -> u64 {
+pub fn solution() -> (u64, u64) {
     let input = read_one_per_line::<String>("./src/day_5/input.txt").unwrap();
-    let movements: Vec<Movement> = build_movements(input)
+    let raw_movements = build_movements(input);
+    let filtered_movements: Vec<Movement> = raw_movements
+        .clone()
         .into_iter()
         .filter(|mov| mov.start.x == mov.end.x || mov.start.y == mov.end.y)
         .collect();
-    let mut canvas = build_canvas(&movements);
+    let all_movements: Vec<Movement> = raw_movements.into_iter().collect();
 
-    for movement in &movements {
-        walk(&movement, &mut canvas);
+    let mut canvas_one = build_canvas(&filtered_movements);
+    let mut canvas_two = canvas_one.clone();
+
+    for movement in &filtered_movements {
+        walk(&movement, &mut canvas_one);
+    }
+    for movement in &all_movements {
+        walk(&movement, &mut canvas_two);
     }
 
-    count_overlaps(&canvas)
+    let part1 = count_overlaps(&canvas_one);
+    let part2 = count_overlaps(&canvas_two);
+
+    (part1, part2)
 }
 
 fn walk(movement: &Movement, canvas: &mut Vec<Vec<u64>>) {
     let mut start = movement.start.clone();
-    let mut end = movement.end.clone();
+    let end = movement.end.clone();
 
-    if start.x == end.x {
-        if start.y > end.y {
-            while end.y <= start.y {
-                canvas[end.x as usize][end.y as usize] += 1;
-                end.y += 1;
-            }
-        } else {
-            while start.y <= end.y {
-                canvas[start.x as usize][start.y as usize] += 1;
-                start.y += 1;
-            }
-        }
-    } else {
-        if start.x > end.x {
-            while end.x <= start.x {
-                canvas[end.x as usize][end.y as usize] += 1;
-                end.x += 1;
-            }
-        } else {
-            while start.x <= end.x {
-                canvas[start.x as usize][start.y as usize] += 1;
-                start.x += 1;
-            }
-        }
+    while start.x != end.x || start.y != end.y {
+        canvas[start.x as usize][start.y as usize] += 1;
+        start.move_to(&end);
     }
+
+    canvas[end.x as usize][end.y as usize] += 1;
 }
 
 fn count_overlaps(canvas: &Vec<Vec<u64>>) -> u64 {
@@ -123,4 +131,130 @@ fn build_canvas(movements: &Vec<Movement>) -> Vec<Vec<u64>> {
     }
 
     canvas
+}
+
+#[test]
+fn horizontal() {
+    let mut canvas: Vec<Vec<u64>> = [
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+    ]
+    .to_vec();
+    walk(
+        &Movement {
+            start: Coord { x: 0, y: 0 },
+            end: Coord { x: 0, y: 3 },
+        },
+        &mut canvas,
+    );
+    assert_eq!(
+        canvas,
+        [[1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],]
+    );
+}
+
+#[test]
+fn vertical() {
+    let mut canvas: Vec<Vec<u64>> = [
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+    ]
+    .to_vec();
+    walk(
+        &Movement {
+            start: Coord { x: 2, y: 2 },
+            end: Coord { x: 0, y: 2 },
+        },
+        &mut canvas,
+    );
+    assert_eq!(
+        canvas,
+        [
+            [0, 0, 1, 0],
+            [0, 0, 1, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 0],
+        ]
+    );
+}
+
+#[test]
+fn vertical_2() {
+    let mut canvas: Vec<Vec<u64>> = [
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+    ]
+    .to_vec();
+    walk(
+        &Movement {
+            start: Coord { x: 1, y: 3 },
+            end: Coord { x: 3, y: 3 },
+        },
+        &mut canvas,
+    );
+    assert_eq!(
+        canvas,
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 1],
+            [0, 0, 0, 1],
+        ]
+    );
+}
+
+
+#[test]
+fn diagonal() {
+    let mut canvas: Vec<Vec<u64>> = [
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+    ]
+    .to_vec();
+    walk(
+        &Movement {
+            start: Coord { x: 1, y: 1 },
+            end: Coord { x: 3, y: 3 },
+        },
+        &mut canvas,
+    );
+    assert_eq!(
+        canvas,
+        [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1],]
+    );
+}
+
+#[test]
+fn diagonal_2() {
+    let mut canvas: Vec<Vec<u64>> = [
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+        [0 as u64, 0 as u64, 0 as u64, 0 as u64].to_vec(),
+    ]
+    .to_vec();
+    walk(
+        &Movement {
+            start: Coord { x: 3, y: 0 },
+            end: Coord { x: 1, y: 2 },
+        },
+        &mut canvas,
+    );
+    assert_eq!(
+        canvas,
+        [
+            [0, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, 1, 0, 0],
+            [1, 0, 0, 0],
+        ]
+    );
 }

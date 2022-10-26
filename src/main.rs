@@ -27,7 +27,8 @@ fn main() {
     println!("\t* part 1: {}", part1);
     println!("\t* part 2: {}", part2);
 
-    let part1 = day_5::solution::solution();
+    let (part1, part2) = day_5::solution::solution();
     println!("- Day 5");
     println!("\t* part 1: {}", part1);
+    println!("\t* part 2: {}", part2);
 }
