@@ -1,6 +1,8 @@
+use std::collections::{HashSet, VecDeque};
+
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() {
+pub fn solution() -> (u32, u32) {
     let input = read_one_per_line::<String>("./src/day_9/input.txt").unwrap();
     let raw_grid: Vec<Vec<u32>> = input
         .into_iter()
@@ -14,11 +16,76 @@ pub fn solution() {
 
     let grid = build_grid(raw_grid);
     let lows: Vec<&Location> = Grid::get_lows(&grid);
-    let part1 = lows
-        .into_iter()
-        .fold(0, |acc, location| acc + location.value + 1);
+    let part1 = sum_lows_up(&grid, &lows);
+    let part2 = sum_basins_up(&grid, &lows);
 
-    println!("part1: {}", part1);
+    (part1, part2)
+}
+
+fn sum_basins_up(grid: &Vec<Vec<Location>>, lows: &Vec<&Location>) -> u32 {
+    let mut basins_sums: Vec<u32> = Vec::new();
+    for low in lows {
+        basins_sums.push(sum_basin(grid, low));
+    }
+    basins_sums.sort();
+    basins_sums
+        .iter()
+        .rev()
+        .take(3)
+        .fold(1, |acc, value| acc * value)
+}
+
+fn sum_basin(grid: &Vec<Vec<Location>>, loc: &Location) -> u32 {
+    let mut hash = HashSet::new();
+    hash.insert(&loc.id);
+
+    let mut stack = VecDeque::new();
+    stack.push_back(loc.clone());
+
+    let mut basins = 1;
+
+    while !stack.is_empty() {
+        let curr = stack.pop_front().unwrap();
+        let neighbors = get_neighbors(grid, curr.clone());
+
+        for neighbor in neighbors {
+            if !hash.contains(&neighbor.id) && neighbor.value != 9 && neighbor.value > curr.value {
+                hash.insert(&neighbor.id);
+                basins += 1;
+                stack.push_back(neighbor.clone());
+            }
+        }
+    }
+
+    basins
+}
+
+fn get_neighbors<'a>(grid: &'a Vec<Vec<Location>>, curr: Location) -> Vec<&'a Location> {
+    let mut neighbors = Vec::new();
+
+    // up
+    if curr.row > 0 {
+        neighbors.push(&grid[curr.row - 1][curr.col]);
+    }
+    // right
+    if curr.col < grid[0].len() - 1 {
+        neighbors.push(&grid[curr.row][curr.col + 1]);
+    }
+    // down
+    if curr.row < grid.len() - 1 {
+        neighbors.push(&grid[curr.row + 1][curr.col]);
+    }
+    // left
+    if curr.col > 0 {
+        neighbors.push(&grid[curr.row][curr.col - 1]);
+    }
+
+    neighbors
+}
+
+fn sum_lows_up(_grid: &Vec<Vec<Location>>, lows: &Vec<&Location>) -> u32 {
+    lows.into_iter()
+        .fold(0, |acc, location| acc + location.value + 1)
 }
 
 struct Grid {}
@@ -29,7 +96,7 @@ impl Grid {
         for row in grid {
             for location in row {
                 if Grid::locaton_is_low(grid, &location) {
-                    lows.push(location.clone());
+                    lows.push((&location).clone());
                 }
             }
         }
@@ -63,21 +130,22 @@ impl Grid {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Location {
+    id: String,
     value: u32,
     row: usize,
     col: usize,
-    is_low: bool,
 }
 
 impl Location {
     pub fn new(value: u32, row: usize, col: usize) -> Self {
+        let id = format!("{}-{}", row.to_string(), col.to_string());
         Self {
+            id,
             value,
             row,
             col,
-            is_low: false,
         }
     }
 }
