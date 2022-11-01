@@ -9,6 +9,7 @@ mod day_6;
 mod day_7;
 mod day_8;
 mod day_9;
+mod day_10;
 
 fn main() {
     //let (part1, part2) = day_1::solution::solution();
@@ -51,8 +52,13 @@ fn main() {
     //println!("\t* part 1: {}", part1);
     //println!("\t* part 2: {}", part2);
 
-    let (part1, part2) = day_9::solution::solution();
-    println!("- Day 9");
+    //let (part1, part2) = day_9::solution::solution();
+    //println!("- Day 9");
+    //println!("\t* part 1: {}", part1);
+    //println!("\t* part 2: {}", part2);
+
+    let (part1, part2) = day_10::solution::solution();
+    println!("- Day 10");
     println!("\t* part 1: {}", part1);
     println!("\t* part 2: {}", part2);
 }
