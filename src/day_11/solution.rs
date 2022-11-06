@@ -5,12 +5,13 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 type Grid = Vec<Vec<u32>>;
 type Coord = (usize, usize); // row, col
 
-pub fn solution() -> () {
+pub fn solution() -> (u64, i64) {
     let input = read_one_per_line::<String>("./src/day_11/input.txt").unwrap();
     let mut grid: Grid = build_grid(input);
     let mut flashes: u64 = 0;
+    let mut first_complete_flash: i64 = -1;
 
-    for _step in 0..100 {
+    for step in 0.. {
         increase_all(&mut grid);
         let mut flashables: HashSet<Coord> = HashSet::new();
 
@@ -34,15 +35,26 @@ pub fn solution() -> () {
                 }
             }
 
+            if flashables.len() == (grid.len() * grid[0].len()) {
+                first_complete_flash = (step + 1) as i64;
+            }
+
             // flash flashable cells
             for (row, col) in &flashables {
                 grid[row.clone()][col.clone()] = 0;
             }
         }
-        flashes += flashables.len() as u64;
+
+        if step < 100 {
+            flashes += flashables.len() as u64;
+        }
+
+        if first_complete_flash != -1 {
+            break;
+        }
     }
 
-    println!("{:?}", flashes);
+    (flashes, first_complete_flash)
 }
 
 fn neighbors(grid: &Grid, (flashable_row, flashable_col): Coord) -> Vec<Coord> {
