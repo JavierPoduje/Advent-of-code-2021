@@ -1,7 +1,7 @@
 use super::super::utils::read_one_per_line::read_one_per_line;
 use std::cmp::min;
 
-pub fn solution() -> (usize, usize) {
+pub fn solution() -> (u64, u64) {
     let input = read_one_per_line::<String>("./src/day_7/input.txt").unwrap();
     let values: Vec<usize> = input
         .first()
@@ -15,7 +15,7 @@ pub fn solution() -> (usize, usize) {
     let part1 = calculate_fuel_to_use(&crabs, false);
     let part2 = calculate_fuel_to_use(&crabs, true);
 
-    (part1, part2)
+    (part1 as u64, part2 as u64)
 }
 
 fn calculate_fuel_to_use(crabs: &Vec<usize>, penalize_distance: bool) -> usize {

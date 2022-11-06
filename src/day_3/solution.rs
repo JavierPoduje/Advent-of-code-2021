@@ -1,8 +1,8 @@
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (i32, i32) {
+pub fn solution() -> (u64, u64) {
     let binaries = read_one_per_line::<String>("./src/day_3/input.txt").unwrap();
-    (part1(&binaries), part2(&binaries))
+    (part1(&binaries) as u64, part2(&binaries) as u64)
 }
 
 fn part2(binaries: &Vec<String>) -> i32 {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (u32, u32) {
+pub fn solution() -> (u64, u64) {
     let rows: Vec<Row> = read_one_per_line::<String>("./src/day_8/input.txt")
         .unwrap()
         .into_iter()
@@ -33,7 +33,7 @@ pub fn solution() -> (u32, u32) {
         part2_count += part2_num;
     }
 
-    (part1_count, part2_count)
+    (part1_count as u64, part2_count as u64)
 }
 
 fn build_row_hashmap(data: &Vec<String>) -> HashMap<String, u32> {

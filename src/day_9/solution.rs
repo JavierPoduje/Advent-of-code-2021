@@ -2,7 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (u32, u32) {
+pub fn solution() -> (u64, u64) {
     let input = read_one_per_line::<String>("./src/day_9/input.txt").unwrap();
     let raw_grid: Vec<Vec<u32>> = input
         .into_iter()
@@ -19,7 +19,7 @@ pub fn solution() -> (u32, u32) {
     let part1 = sum_lows_up(&grid, &lows);
     let part2 = sum_basins_up(&grid, &lows);
 
-    (part1, part2)
+    (part1 as u64, part2 as u64)
 }
 
 fn sum_basins_up(grid: &Vec<Vec<Location>>, lows: &Vec<&Location>) -> u32 {

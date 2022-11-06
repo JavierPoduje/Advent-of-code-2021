@@ -5,7 +5,7 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 type Grid = Vec<Vec<u32>>;
 type Coord = (usize, usize); // row, col
 
-pub fn solution() -> (u64, i64) {
+pub fn solution() -> (u64, u64) {
     let input = read_one_per_line::<String>("./src/day_11/input.txt").unwrap();
     let mut grid: Grid = build_grid(input);
     let mut flashes: u64 = 0;
@@ -54,7 +54,7 @@ pub fn solution() -> (u64, i64) {
         }
     }
 
-    (flashes, first_complete_flash)
+    (flashes, first_complete_flash as u64)
 }
 
 fn neighbors(grid: &Grid, (flashable_row, flashable_col): Coord) -> Vec<Coord> {
