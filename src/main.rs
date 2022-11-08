@@ -3,6 +3,7 @@ mod utils;
 mod day_1;
 mod day_10;
 mod day_11;
+mod day_12;
 mod day_2;
 mod day_3;
 mod day_4;
@@ -30,6 +31,7 @@ fn main() {
         "9" => day_9::solution::solution,
         "10" => day_10::solution::solution,
         "11" => day_11::solution::solution,
+        "12" => day_12::solution::solution,
         _ => unreachable!(),
     };
 
