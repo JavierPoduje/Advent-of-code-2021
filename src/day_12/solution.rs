@@ -8,12 +8,22 @@ pub fn solution() -> (u64, u64) {
     let input = read_one_per_line::<String>("./src/day_12/input.txt").unwrap();
     let nodes = build_nodes(input);
 
-    let valid_paths = walk(&nodes, "start", &mut HashSet::new());
+    let valid_paths_for_fst = first_walk(&nodes, "start", &mut HashSet::new());
 
-    (valid_paths, 0)
+    let mut hashmap: HashMap<String, u8> =
+        nodes
+            .clone()
+            .into_iter()
+            .fold(HashMap::new(), |mut hash, (node, _)| {
+                hash.insert(node, 0);
+                hash
+            });
+    let valid_paths_for_scd = second_walk(&nodes, "start", &mut hashmap);
+
+    (valid_paths_for_fst, valid_paths_for_scd)
 }
 
-fn walk(nodes: &Nodes, current: &str, seen: &mut HashSet<String>) -> u64 {
+fn first_walk(nodes: &Nodes, current: &str, seen: &mut HashSet<String>) -> u64 {
     if current == "end" {
         return 1;
     } else if seen.contains(current) && current.chars().any(|char| char.is_lowercase()) {
@@ -23,11 +33,35 @@ fn walk(nodes: &Nodes, current: &str, seen: &mut HashSet<String>) -> u64 {
     seen.insert(current.to_string());
 
     let mut valid_paths = 0;
-    for other in nodes.get(current).unwrap().into_iter() {
-        valid_paths += walk(&nodes, other, seen);
+    for other in nodes.get(current).unwrap() {
+        valid_paths += first_walk(&nodes, other, seen);
     }
 
     seen.remove(current);
+
+    valid_paths
+}
+
+fn second_walk(nodes: &Nodes, current: &str, seen: &mut HashMap<String, u8>) -> u64 {
+    if current == "end" {
+        return 1;
+    }
+
+    let number_of_visits = seen.get(current).unwrap();
+    if (current == "start" && number_of_visits > &1)
+        || (number_of_visits >= &2 && current.chars().any(|char| char.is_lowercase()))
+    {
+        return 0;
+    }
+
+    *seen.get_mut(current).unwrap() += 1;
+
+    let mut valid_paths = 0;
+    for other in nodes.get(current).unwrap() {
+        valid_paths += second_walk(&nodes, other, seen);
+    }
+
+    *seen.get_mut(current).unwrap() -= 1;
 
     valid_paths
 }
