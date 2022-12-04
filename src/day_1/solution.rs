@@ -19,7 +19,11 @@ pub fn solution() -> (u64, u64) {
         }
     }
 
-    let max: u64 = calories.iter().max().unwrap().clone();
+    let part1: u64 = calories.iter().max().unwrap().clone();
 
-    (max, 0)
+    calories.sort();
+    calories.reverse();
+    let part2: u64 = calories[..3].iter().sum();
+
+    (part1, part2)
 }
