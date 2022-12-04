@@ -6,9 +6,9 @@ pub struct Parser {
 
 impl Parser {
     pub fn new() -> Self {
-        let args = Command::new("Aoc 2021")
+        let args = Command::new("Aoc 2022")
             .version("0.1")
-            .about("Solutions to advent of code - 2021")
+            .about("Solutions to advent of code - 2022")
             .arg(
                 Arg::new("day")
                     .long("day")
