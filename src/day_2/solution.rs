@@ -5,18 +5,30 @@ pub fn solution() -> (u64, u64) {
         .unwrap()
         .into_iter()
         .filter(|row| !row.is_empty())
-        .map(|row| {
-            let splitted: Vec<&str> = row.as_str().split(" ").collect();
-            (
-                Thing::new(splitted.first().unwrap()),
-                Thing::new(splitted.last().unwrap()),
-            )
-        })
         .collect();
 
-    let total_score = rows.into_iter().fold(0, |acc, row| acc + score(row));
+    let mut rows_for_fst: Vec<(Thing, Thing)> = Vec::new();
+    let mut rows_for_scd: Vec<(Thing, Thing)> = Vec::new();
 
-    (total_score, 0)
+    for row in rows {
+        let splitted: Vec<&str> = row.as_str().split(" ").collect();
+
+        let fst = splitted.first().unwrap();
+        let scd = splitted.last().unwrap();
+
+        rows_for_fst.push((Thing::new(fst), Thing::new(scd)));
+        rows_for_scd.push((Thing::new(fst), Thing::new_calculated(fst, scd)));
+    }
+
+    let fst_score = rows_for_fst
+        .clone()
+        .into_iter()
+        .fold(0, |acc, row| acc + score(row));
+    let scd_score = rows_for_scd
+        .into_iter()
+        .fold(0, |acc, row| acc + score(row));
+
+    (fst_score, scd_score)
 }
 
 fn score((fst, scd): (Thing, Thing)) -> u64 {
@@ -25,6 +37,7 @@ fn score((fst, scd): (Thing, Thing)) -> u64 {
     bout_score + value
 }
 
+#[derive(Clone, Debug)]
 enum Thing {
     Rock,
     Papper,
@@ -37,6 +50,42 @@ impl Thing {
             "A" | "X" => Self::Rock,
             "B" | "Y" => Self::Papper,
             "C" | "Z" => Self::Scissors,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn new_calculated(fst: &str, scd: &str) -> Self {
+        match scd {
+            "X" => Thing::lose(fst), // lose
+            "Y" => Thing::draw(fst), // draw
+            "Z" => Thing::win(fst),  // win
+            _ => unreachable!(),
+        }
+    }
+
+    fn win(char: &str) -> Self {
+        match char {
+            "A" => Self::Papper,
+            "B" => Self::Scissors,
+            "C" => Self::Rock,
+            _ => unreachable!(),
+        }
+    }
+
+    fn lose(char: &str) -> Self {
+        match char {
+            "A" => Self::Scissors,
+            "B" => Self::Rock,
+            "C" => Self::Papper,
+            _ => unreachable!(),
+        }
+    }
+
+    fn draw(char: &str) -> Self {
+        match char {
+            "A" => Self::Rock,
+            "B" => Self::Papper,
+            "C" => Self::Scissors,
             _ => unreachable!(),
         }
     }
