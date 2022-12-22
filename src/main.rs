@@ -1,6 +1,7 @@
 mod utils;
 
 mod day_1;
+mod day_2;
 
 mod parser;
 use parser::Parser;
@@ -12,6 +13,7 @@ fn main() {
 
     let (part1, part2) = match day {
         "1" => day_1::solution::solution(),
+        "2" => day_2::solution::solution(),
         _ => unreachable!(),
     };
 
