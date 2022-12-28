@@ -3,6 +3,7 @@ mod utils;
 mod day_1;
 mod day_2;
 mod day_3;
+mod day_4;
 
 mod parser;
 use parser::Parser;
@@ -16,6 +17,7 @@ fn main() {
         "1" => day_1::solution::solution(),
         "2" => day_2::solution::solution(),
         "3" => day_3::solution::solution(),
+        "4" => day_4::solution::solution(),
         _ => unreachable!(),
     };
 
