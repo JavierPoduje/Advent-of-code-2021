@@ -21,16 +21,21 @@ pub fn solution() -> (u64, u64) {
         .collect();
 
     let mut part_1 = 0;
+    let mut part_2 = 0;
+
     for pair in elf_pairs {
-        if redundant(pair) {
+        if full_overlap(pair.clone()) {
             part_1 += 1;
+            part_2 += 1;
+        } else if partial_overlap(pair) {
+            part_2 += 1;
         }
     }
 
-    (part_1, 0)
+    (part_1, part_2)
 }
 
-fn redundant([fst, scd]: [Elf; 2]) -> bool {
+fn full_overlap([fst, scd]: [Elf; 2]) -> bool {
     let fst_contains_scd = scd
         .sections
         .iter()
@@ -42,7 +47,19 @@ fn redundant([fst, scd]: [Elf; 2]) -> bool {
     fst_contains_scd || scd_contains_fst
 }
 
-#[derive(Debug)]
+fn partial_overlap([fst, scd]: [Elf; 2]) -> bool {
+    let fst_contains_scd = scd
+        .sections
+        .iter()
+        .any(|section| fst.sections.contains(section));
+    let scd_contains_fst = fst
+        .sections
+        .iter()
+        .any(|section| scd.sections.contains(section));
+    fst_contains_scd || scd_contains_fst
+}
+
+#[derive(Debug, Clone)]
 struct Elf {
     sections: HashSet<i32>,
 }
