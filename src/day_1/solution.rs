@@ -1,6 +1,6 @@
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (u64, u64) {
+pub fn solution() -> (String, String) {
     let rows = read_one_per_line::<String>("./src/day_1/input.txt").unwrap();
 
     let mut calories = Vec::<u64>::new();
@@ -25,5 +25,5 @@ pub fn solution() -> (u64, u64) {
     calories.reverse();
     let part2: u64 = calories[..3].iter().sum();
 
-    (part1, part2)
+    (part1.to_string(), part2.to_string())
 }

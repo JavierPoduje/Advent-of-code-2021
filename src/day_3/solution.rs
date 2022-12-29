@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (u64, u64) {
+pub fn solution() -> (String, String) {
     let rows: Vec<String> = read_one_per_line::<String>("./src/day_3/input.txt")
         .unwrap()
         .into_iter()
@@ -32,7 +32,7 @@ pub fn solution() -> (u64, u64) {
         part1 += intersections;
     }
 
-    (part1, 0)
+    (part1.to_string(), 0.to_string())
 }
 
 fn prioritize(char: &str) -> u64 {

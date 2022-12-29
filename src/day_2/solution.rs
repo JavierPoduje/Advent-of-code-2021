@@ -1,6 +1,6 @@
 use super::super::utils::read_one_per_line::read_one_per_line;
 
-pub fn solution() -> (u64, u64) {
+pub fn solution() -> (String, String) {
     let rows: Vec<_> = read_one_per_line::<String>("./src/day_2/input.txt")
         .unwrap()
         .into_iter()
@@ -28,7 +28,7 @@ pub fn solution() -> (u64, u64) {
         .into_iter()
         .fold(0, |acc, row| acc + score(row));
 
-    (fst_score, scd_score)
+    (fst_score.to_string(), scd_score.to_string())
 }
 
 fn score((fst, scd): (Thing, Thing)) -> u64 {
