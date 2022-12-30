@@ -20,25 +20,36 @@ pub fn solution() -> (String, String) {
                 acc.push(Movement::new(repetitions, from, to));
                 acc
             });
-    let mut stacks_by_idx = build_initial_stacks(stack_definition);
+    let mut stacks_1 = build_initial_stacks(stack_definition.clone());
+    let mut stacks_2 = build_initial_stacks(stack_definition);
 
     for mov in rearragements {
+        // handle stack 1
         for _ in 0..mov.repetitions {
-            let item = stacks_by_idx
-                .get_mut(&mov.from)
-                .unwrap()
-                .pop_back()
-                .unwrap();
-            stacks_by_idx.get_mut(&mov.to).unwrap().push_back(item);
+            let item = stacks_1.get_mut(&mov.from).unwrap().pop_back().unwrap();
+            stacks_1.get_mut(&mov.to).unwrap().push_back(item);
+        }
+
+        // handle stack 2
+        let mut items: VecDeque<String> = VecDeque::new();
+        for _ in 0..mov.repetitions {
+            let item = stacks_2.get_mut(&mov.from).unwrap().pop_back().unwrap();
+            items.push_front(item);
+        }
+
+        for item in items {
+            stacks_2.get_mut(&mov.to).unwrap().push_back(item);
         }
     }
 
     let mut part_1 = String::new();
-    for idx in 1..=stacks_by_idx.len() {
-        part_1.push_str(stacks_by_idx.get(&idx).unwrap().back().unwrap());
+    let mut part_2 = String::new();
+    for idx in 1..=stacks_1.len() {
+        part_1.push_str(stacks_1.get(&idx).unwrap().back().unwrap());
+        part_2.push_str(stacks_2.get(&idx).unwrap().back().unwrap());
     }
 
-    (part_1, 0.to_string())
+    (part_1, part_2)
 }
 
 fn build_initial_stacks(rows: Vec<&String>) -> HashMap<usize, VecDeque<String>> {
