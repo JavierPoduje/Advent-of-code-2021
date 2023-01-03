@@ -23,10 +23,6 @@ fn calculate_part1(system: &HashMap<String, Dir>) -> String {
     system
         .iter()
         .fold(0, |acc, (_, dir)| {
-            println!("dir.name: {:?}", dir.name);
-            println!("dir.size: {:?}", dir.size);
-            println!("predicate: {:?}", dir.size <= THRESHOLD);
-            println!("-------------");
             match dir.size <= THRESHOLD {
                 true => acc + dir.size,
                 _ => acc,
