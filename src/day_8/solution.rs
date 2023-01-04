@@ -19,11 +19,13 @@ pub fn solution() -> (String, String) {
         .collect();
 
     let heights_by_coord = calculate_heights_by_coord(&matrix);
+    let part2 = calculate_scenic_score_by_coord(&matrix);
+
     set_visibility(&mut matrix, heights_by_coord);
 
     let part1 = calculate_part1(&matrix);
 
-    (part1.to_string(), "B".to_string())
+    (part1.to_string(), part2.to_string())
 }
 
 fn calculate_part1(matrix: &Matrix) -> u64 {
@@ -55,6 +57,82 @@ fn set_visibility(
             cell.set_visibility(heights, is_edge);
         }
     }
+}
+
+fn calculate_scenic_score_by_coord(matrix: &Matrix) -> u64 {
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    let mut max_scenic_score = 0;
+
+    for row in 0..rows {
+        for col in 0..cols {
+            max_scenic_score = max(max_scenic_score, walk(row, col, matrix));
+        }
+    }
+
+    max_scenic_score
+}
+
+fn walk(row: usize, col: usize, matrix: &Matrix) -> u64 {
+    let value = matrix[row][col].value;
+
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    let mut up: u64 = 0;
+    match row > 0 {
+        true => {
+            for idx in (0..row).rev() {
+                up += 1;
+                if matrix[idx][col].value >= value {
+                    break;
+                }
+            }
+        }
+        false => {}
+    }
+
+    let mut right: u64 = 0;
+    match col < cols - 1 {
+        true => {
+            for idx in col + 1..cols {
+                right += 1;
+                if matrix[row][idx].value >= value {
+                    break;
+                }
+            }
+        }
+        false => right = 0,
+    }
+
+    let mut down: u64 = 0;
+    match row < rows - 1 {
+        true => {
+            for idx in row + 1..rows {
+                down += 1;
+                if matrix[idx][col].value >= value {
+                    break;
+                }
+            }
+        }
+        false => {}
+    }
+
+    let mut left: u64 = 0;
+    match col > 0 {
+        true => {
+            for idx in (0..col).rev() {
+                left += 1;
+                if matrix[row][idx].value >= value {
+                    break;
+                }
+            }
+        }
+        false => {}
+    }
+
+    up * right * down * left
 }
 
 fn calculate_heights_by_coord(matrix: &Matrix) -> HashMap<(usize, usize), HeightByDirection> {
