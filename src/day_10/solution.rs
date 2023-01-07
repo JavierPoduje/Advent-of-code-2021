@@ -22,12 +22,26 @@ pub fn solution() -> (String, String) {
     let mut register: i64 = 1;
     let mut signal_strength: Vec<i64> = Vec::new();
 
-    for (command, v) in rows {
+    let mut screen: Vec<[char; 40]> = Vec::new();
+    screen.push(['.'; 40]);
+
+    for (row_number, (command, v)) in rows.iter().enumerate() {
         match command.as_str() {
             "noop" => {
                 cycles += 1;
                 if is_interesting_signal_cycle(cycles) {
                     signal_strength.push(register * cycles);
+                }
+
+                let idx = (cycles - 1) % 40;
+
+                if idx - 1 <= register && register <= idx + 1 {
+                    let last_row = screen.last_mut().unwrap();
+                    *last_row.get_mut(idx as usize).unwrap() = '#';
+                }
+
+                if should_add_row(cycles, row_number, rows.len()) {
+                    screen.push(['.'; 40]);
                 }
             }
             "addx" => {
@@ -36,6 +50,17 @@ pub fn solution() -> (String, String) {
                     if is_interesting_signal_cycle(cycles) {
                         signal_strength.push(register * cycles);
                     }
+
+                    let idx = (cycles - 1) % 40;
+
+                    if idx - 1 <= register && register <= idx + 1 {
+                        let last_row = screen.last_mut().unwrap();
+                        *last_row.get_mut(idx as usize).unwrap() = '#';
+                    }
+
+                    if should_add_row(cycles, row_number, rows.len()) {
+                        screen.push(['.'; 40]);
+                    }
                 }
                 register += v.unwrap();
             }
@@ -43,9 +68,19 @@ pub fn solution() -> (String, String) {
         }
     }
 
+    let part2 = screen.iter().fold(String::from("\n"), |mut acc, row| {
+        acc.push_str(&row.map(|char| char.to_string()).join(""));
+        acc.push_str("\n");
+        acc
+    });
+
     let part1: i64 = signal_strength.iter().sum();
 
-    (part1.to_string(), "B".to_string())
+    (part1.to_string(), part2)
+}
+
+fn should_add_row(cycles: i64, row_number: usize, total_rows: usize) -> bool {
+    row_number < total_rows - 1 && (cycles - 1) > 0 && (cycles - 1) % 40 == 39
 }
 
 fn is_interesting_signal_cycle(cycles: i64) -> bool {
