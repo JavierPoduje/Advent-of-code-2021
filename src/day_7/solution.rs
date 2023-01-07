@@ -22,11 +22,9 @@ pub fn solution() -> (String, String) {
 fn calculate_part1(system: &HashMap<String, Dir>) -> String {
     system
         .iter()
-        .fold(0, |acc, (_, dir)| {
-            match dir.size <= THRESHOLD {
-                true => acc + dir.size,
-                _ => acc,
-            }
+        .fold(0, |acc, (_, dir)| match dir.size <= THRESHOLD {
+            true => acc + dir.size,
+            _ => acc,
         })
         .to_string()
 }
@@ -115,7 +113,7 @@ enum Command {
 
 #[derive(Debug, Clone)]
 struct Dir {
-    name: String,
+    _name: String,
     files: Vec<File>,
     size: u64,
     dirs: HashSet<String>,
@@ -123,14 +121,14 @@ struct Dir {
 
 #[derive(Debug, Clone)]
 struct File {
-    name: String,
+    _name: String,
     size: u64,
 }
 
 impl Dir {
     pub fn new(dir_name: String) -> Self {
         Self {
-            name: dir_name,
+            _name: dir_name,
             files: Vec::new(),
             dirs: HashSet::new(),
             size: 0,
@@ -156,7 +154,7 @@ fn command(command_name: &str) -> Command {
 }
 
 impl File {
-    pub fn new(name: String, size: u64) -> Self {
-        Self { name, size }
+    pub fn new(_name: String, size: u64) -> Self {
+        Self { _name, size }
     }
 }
