@@ -4,8 +4,11 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
     let (grid, start, end, width, height) = parse();
+
     let part1 = part1(grid.clone(), start, end, width, height);
-    (part1.to_string(), "A".to_string())
+    let part2 = part2(grid, start, end, width, height);
+
+    (part1.to_string(), part2.to_string())
 }
 
 fn part1(
@@ -15,6 +18,40 @@ fn part1(
     width: usize,
     height: usize,
 ) -> usize {
+    find_shortest(grid, start, end, width, height).unwrap()
+}
+
+fn part2(
+    grid: Vec<Vec<u8>>,
+    _: (usize, usize),
+    end: (usize, usize),
+    width: usize,
+    height: usize,
+) -> usize {
+    let mut startpoints = Vec::new();
+
+    for (row, line) in grid.iter().enumerate() {
+        for (col, ch) in line.iter().enumerate() {
+            if *ch == b'a' {
+                startpoints.push((row, col));
+            }
+        }
+    }
+
+    startpoints
+        .iter()
+        .filter_map(|p| find_shortest(grid.clone(), p.clone(), end, width, height))
+        .min()
+        .unwrap()
+}
+
+fn find_shortest(
+    grid: Vec<Vec<u8>>,
+    start: (usize, usize),
+    end: (usize, usize),
+    width: usize,
+    height: usize,
+) -> Option<usize> {
     let mut to_visit = Vec::new();
 
     to_visit.extend(get_sorrounding_points(start, width, height));
@@ -30,7 +67,7 @@ fn part1(
         let valid = points
             .iter()
             .filter(|pos| grid[pos.0][pos.1] + 1 >= cur_elevation)
-            .map(|pos| *pos)
+            .copied()
             .collect::<Vec<(usize, usize)>>();
 
         let new_path_dist = valid.iter().filter_map(|pos| shortest.get(pos)).min();
@@ -48,7 +85,7 @@ fn part1(
         }
     }
 
-    *shortest.get(&end).unwrap()
+    shortest.get(&end).copied()
 }
 
 fn get_sorrounding_points(pos: (usize, usize), width: usize, height: usize) -> Vec<(usize, usize)> {
