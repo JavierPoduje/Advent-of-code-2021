@@ -9,17 +9,27 @@ pub fn solution() -> (String, String) {
         .map(|row| row.trim().to_owned())
         .collect();
 
-    let monkeys = parse(rows);
+    let mut monkeys = parse(rows);
 
     let part1 = calc_part1(&mut monkeys.clone());
+    let part2 = calc_part2(&mut monkeys);
 
-    (part1.to_string(), "B".to_string())
+    (part1.to_string(), part2.to_string())
 }
 
 fn calc_part1(monkeys: &mut Vec<Monkey>) -> usize {
-
     for _ in 0..20 {
-        round(monkeys);
+        round(monkeys, true);
+    }
+
+    let mut monkey_business = monkeys.iter().map(|m| m.count).collect::<Vec<usize>>();
+    monkey_business.sort_by(|a, b| b.cmp(a));
+    monkey_business[0] * monkey_business[1]
+}
+
+fn calc_part2(monkeys: &mut Vec<Monkey>) -> usize {
+    for _ in 0..10000 {
+        round(monkeys, false);
     }
 
     let mut monkey_business = monkeys.iter().map(|m| m.count).collect::<Vec<usize>>();
@@ -48,12 +58,10 @@ fn parse(lines: Vec<String>) -> Vec<Monkey> {
                     } else {
                         Op::Add(words[5].parse().unwrap())
                     }
+                } else if words[5] == "old" {
+                    Op::MulSelf
                 } else {
-                    if words[5] == "old" {
-                        Op::MulSelf
-                    } else {
-                        Op::Mul(words[5].parse().unwrap())
-                    }
+                    Op::Mul(words[5].parse().unwrap())
                 };
             }
             "Test:" => monkey.test = words[3].parse().unwrap(),
@@ -73,10 +81,16 @@ fn parse(lines: Vec<String>) -> Vec<Monkey> {
     monkeys
 }
 
-fn round(mvec: &mut Vec<Monkey>) {
+fn round(mvec: &mut Vec<Monkey>, part1: bool) {
+    let modval: u64 = mvec.iter().map(|m| m.test).product();
     for i in 0..mvec.len() {
         while let Some(item) = mvec[i].items.pop_front() {
-            let worry = mvec[i].op.calc(item) / 3;
+            let worry = if part1 {
+                mvec[i].op.calc(item) / 3
+            } else {
+                mvec[i].op.calc(item) % modval
+            };
+
             let dest = if worry % mvec[i].test == 0 {
                 mvec[i].dest.0
             } else {
