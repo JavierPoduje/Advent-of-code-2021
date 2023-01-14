@@ -9,329 +9,112 @@ pub fn solution() -> (String, String) {
         .map(|row| row.trim().to_owned())
         .collect();
 
-    let mut monkeys: Vec<Monkey> = build_initial_monkeys(&rows);
+    let monkeys = parse(rows);
 
-    let mut idx: usize = 0;
-    let mut rounds = 0;
-    let number_of_rounds = 10000;
-    let mut part1 = 0;
-    let modval: u128 = monkeys.iter().map(|m| m.test_value).product();
+    let part1 = calc_part1(&mut monkeys.clone());
 
-    while rounds < number_of_rounds {
-        while monkeys.get(idx).unwrap().items.len() > 0 {
-            // pop front item
-            let mut item = monkeys.get_mut(idx).unwrap().items.pop_front().unwrap();
-            let mut raw_item = monkeys.get_mut(idx).unwrap().raw_items.pop_front().unwrap();
-
-            // add inspection
-            monkeys.get_mut(idx).unwrap().add_inspection();
-
-            // operate (and divide by three the non-raw item)
-            item = monkeys.get(idx).unwrap().call_op(item) / 3;
-
-            raw_item = monkeys.get(idx).unwrap().call_op(raw_item / modval);
-
-            // throw item to another monkey
-            if monkeys.get(idx).unwrap().call_test(item) {
-                let other_monkey_idx = monkeys.get(idx).unwrap().on_true;
-                monkeys.get_mut(other_monkey_idx).unwrap().add_item(item);
-            } else {
-                let other_monkey_idx = monkeys.get(idx).unwrap().on_false;
-                monkeys.get_mut(other_monkey_idx).unwrap().add_item(item);
-            }
-
-            // throw item to another monkey
-            if monkeys.get(idx).unwrap().call_test(raw_item) {
-                let other_monkey_idx = monkeys.get(idx).unwrap().on_true;
-                monkeys
-                    .get_mut(other_monkey_idx)
-                    .unwrap()
-                    .add_item(raw_item);
-            } else {
-                let other_monkey_idx = monkeys.get(idx).unwrap().on_false;
-                monkeys
-                    .get_mut(other_monkey_idx)
-                    .unwrap()
-                    .add_item(raw_item);
-            }
-        }
-
-        // at this point, the monkey was already emptied
-        idx += 1;
-        if idx == monkeys.len() {
-            idx = 0;
-            rounds += 1;
-        }
-
-        if rounds == 20 {
-            let mut monkeys_inspections: Vec<u128> =
-                monkeys.iter().map(|monkey| monkey.inspections).collect();
-            monkeys_inspections.sort();
-            monkeys_inspections.reverse();
-            let inspections: Vec<&u128> = monkeys_inspections.iter().take(2).collect();
-            part1 = inspections[0] * inspections[1];
-        }
-    }
-
-    let mut monkeys_inspections: Vec<u128> =
-        monkeys.iter().map(|monkey| monkey.inspections).collect();
-    monkeys_inspections.sort();
-    monkeys_inspections.reverse();
-    let inspections: Vec<&u128> = monkeys_inspections.iter().take(2).collect();
-    let part2 = inspections[0] * inspections[1];
-
-    (part1.to_string(), part2.to_string())
+    (part1.to_string(), "B".to_string())
 }
 
-struct Monkey {
-    items: VecDeque<u128>,
-    raw_items: VecDeque<u128>,
-    op: Box<dyn Fn(u128) -> Box<dyn Fn(u128) -> u128>>,
-    op_value: u128,
-    inspections: u128,
-    test: Box<dyn Fn(u128) -> Box<dyn Fn(u128) -> bool>>,
-    test_value: u128,
-    on_true: usize,
-    on_false: usize,
+fn calc_part1(monkeys: &mut Vec<Monkey>) -> usize {
 
-    use_new: bool,
-}
-
-impl std::fmt::Debug for Monkey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Monkey")
-            .field("items", &self.items)
-            .field("op_value", &self.op_value)
-            .field("test_value", &self.test_value)
-            .field("on_true", &self.on_true)
-            .field("on_false", &self.on_false)
-            .field("use_new", &self.use_new)
-            .finish()
+    for _ in 0..20 {
+        round(monkeys);
     }
+
+    let mut monkey_business = monkeys.iter().map(|m| m.count).collect::<Vec<usize>>();
+    monkey_business.sort_by(|a, b| b.cmp(a));
+    monkey_business[0] * monkey_business[1]
 }
 
-impl Monkey {
-    pub fn new() -> Self {
-        Self {
-            items: VecDeque::new(),
-            raw_items: VecDeque::new(),
-            inspections: 0,
-            op: Box::new(|a| Box::new(move |b| a + b)),
-            op_value: 1,
-            test: Box::new(|a| Box::new(move |b| a % b == 0)),
-            test_value: 1,
-            on_true: 1,
-            on_false: 1,
-            use_new: false,
+fn parse(lines: Vec<String>) -> Vec<Monkey> {
+    let mut monkeys = Vec::new();
+
+    let mut monkey = Monkey::default();
+
+    for line in lines {
+        let words = line.trim().split(' ').collect::<Vec<&str>>();
+
+        match words[0] {
+            "Monkey" => monkey = Monkey::default(),
+            "Starting" => {
+                let (_, strlist) = line.split_once(": ").unwrap();
+                monkey.items = strlist.split(", ").map(|w| w.parse().unwrap()).collect();
+            }
+            "Operation:" => {
+                monkey.op = if words[4] == "+" {
+                    if words[5] == "old" {
+                        Op::AddSelf
+                    } else {
+                        Op::Add(words[5].parse().unwrap())
+                    }
+                } else {
+                    if words[5] == "old" {
+                        Op::MulSelf
+                    } else {
+                        Op::Mul(words[5].parse().unwrap())
+                    }
+                };
+            }
+            "Test:" => monkey.test = words[3].parse().unwrap(),
+            "If" => {
+                if words[1] == "true:" {
+                    monkey.dest.0 = words[5].parse().unwrap();
+                } else {
+                    monkey.dest.1 = words[5].parse().unwrap();
+                    monkeys.push(monkey);
+                    monkey = Monkey::default();
+                }
+            }
+            _ => panic!("can't handle '{}' yet", words[0]),
         }
     }
 
-    pub fn set_use_new(&mut self, use_new: bool) {
-        self.use_new = use_new;
-    }
-
-    pub fn set_items(&mut self, items: VecDeque<u128>) {
-        self.items = items.clone();
-        self.raw_items = items;
-    }
-
-    pub fn set_op(&mut self, op: Box<dyn Fn(u128) -> Box<dyn Fn(u128) -> u128>>, value: u128) {
-        self.op = op;
-        self.op_value = value;
-    }
-
-    pub fn call_op(&self, b: u128) -> u128 {
-        if self.use_new {
-            return (self.op)(b)(b);
-        }
-        (self.op)(self.op_value)(b)
-    }
-
-    pub fn call_test(&self, value_to_test: u128) -> bool {
-        (self.test)(value_to_test)(self.test_value)
-    }
-
-    pub fn set_test(
-        &mut self,
-        test: Box<dyn Fn(u128) -> Box<dyn Fn(u128) -> bool>>,
-        test_value: u128,
-    ) {
-        self.test = test;
-        self.test_value = test_value;
-    }
-    pub fn set_true(&mut self, on_true: usize) {
-        self.on_true = on_true;
-    }
-    pub fn set_false(&mut self, on_false: usize) {
-        self.on_false = on_false;
-    }
-    pub fn add_item(&mut self, item: u128) {
-        self.items.push_back(item);
-        self.raw_items.push_back(item);
-    }
-
-    pub fn add_inspection(&mut self) {
-        self.inspections += 1;
-    }
-}
-
-fn build_initial_monkeys(rows: &Vec<String>) -> Vec<Monkey> {
-    let mut monkeys: Vec<Monkey> = Vec::new();
-    for row in rows {
-        if row.starts_with("Monkey") {
-            monkeys.push(Monkey::new());
-        } else if row.starts_with("Operation") {
-            let def = row
-                .split(':')
-                .collect::<Vec<&str>>()
-                .last()
-                .unwrap()
-                .split('=')
-                .collect::<Vec<&str>>()
-                .last()
-                .unwrap()
-                .split(' ')
-                .filter(|value| !value.is_empty())
-                .collect::<Vec<&str>>();
-
-            let _left = def[0];
-            let operator = def[1];
-            let right = def[2];
-
-            match operator {
-                "*" => {
-                    if let Some(monkey) = monkeys.last_mut() {
-                        let op_value = match right {
-                            "old" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            "new" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            _ => right.parse::<u128>().unwrap(),
-                        };
-                        monkey.set_op(Box::new(|a| Box::new(move |b| a * b)), op_value);
-                    }
-                }
-                "+" => {
-                    if let Some(monkey) = monkeys.last_mut() {
-                        let op_value = match right {
-                            "old" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            "new" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            _ => right.parse::<u128>().unwrap(),
-                        };
-                        monkey.set_op(Box::new(|a| Box::new(move |b| a + b)), op_value);
-                    }
-                }
-                "-" => {
-                    if let Some(monkey) = monkeys.last_mut() {
-                        let op_value = match right {
-                            "old" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            "new" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            _ => right.parse::<u128>().unwrap(),
-                        };
-                        monkey.set_op(Box::new(|a| Box::new(move |b| a - b)), op_value);
-                    }
-                }
-                "/" => {
-                    if let Some(monkey) = monkeys.last_mut() {
-                        let op_value = match right {
-                            "old" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            "new" => {
-                                monkey.set_use_new(true);
-                                1
-                            }
-                            _ => right.parse::<u128>().unwrap(),
-                        };
-                        monkey.set_op(Box::new(|a| Box::new(move |b| a / b)), op_value);
-                    }
-                }
-                "" => {}
-                _ => {
-                    unreachable!();
-                }
-            }
-        } else if row.starts_with("Test") {
-            let divisible_by = row
-                .split(':')
-                .collect::<Vec<&str>>()
-                .last()
-                .unwrap()
-                .split(' ')
-                .last()
-                .unwrap()
-                .trim()
-                .parse::<u128>()
-                .unwrap();
-
-            if let Some(monkey) = monkeys.last_mut() {
-                monkey.set_test(Box::new(|a| Box::new(move |b| a % b == 0)), divisible_by);
-            }
-        } else if row.starts_with("If true") {
-            let monkey_to_throw_idx = row
-                .split(':')
-                .last()
-                .unwrap()
-                .split(' ')
-                .last()
-                .unwrap()
-                .trim()
-                .parse::<usize>()
-                .unwrap();
-
-            if let Some(monkey) = monkeys.last_mut() {
-                monkey.set_true(monkey_to_throw_idx);
-            }
-        } else if row.starts_with("If false") {
-            let monkey_to_throw_idx = row
-                .split(':')
-                .last()
-                .unwrap()
-                .split(' ')
-                .last()
-                .unwrap()
-                .trim()
-                .parse::<usize>()
-                .unwrap();
-
-            if let Some(monkey) = monkeys.last_mut() {
-                monkey.set_false(monkey_to_throw_idx);
-            }
-        } else if row.starts_with("Starting items") {
-            let items: Vec<u128> = row
-                .split(':')
-                .collect::<Vec<&str>>()
-                .last()
-                .unwrap()
-                .split(',')
-                .map(|value: &str| {
-                    let val = value.trim().parse::<u128>().unwrap();
-                    val
-                })
-                .collect();
-            if let Some(monkey) = monkeys.last_mut() {
-                monkey.set_items(VecDeque::from(items));
-            }
-        } else {
-            unreachable!();
-        }
-    }
     monkeys
+}
+
+fn round(mvec: &mut Vec<Monkey>) {
+    for i in 0..mvec.len() {
+        while let Some(item) = mvec[i].items.pop_front() {
+            let worry = mvec[i].op.calc(item) / 3;
+            let dest = if worry % mvec[i].test == 0 {
+                mvec[i].dest.0
+            } else {
+                mvec[i].dest.1
+            };
+            mvec[dest].items.push_back(worry);
+            mvec[i].count += 1;
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+struct Monkey {
+    items: VecDeque<u64>,
+    op: Op,
+    test: u64,
+    dest: (usize, usize),
+    count: usize,
+}
+
+impl Monkey {}
+
+#[derive(Debug, Default, Clone)]
+enum Op {
+    #[default]
+    AddSelf,
+    MulSelf,
+    Mul(u64),
+    Add(u64),
+}
+
+impl Op {
+    fn calc(&self, val: u64) -> u64 {
+        match self {
+            Op::AddSelf => val + val,
+            Op::MulSelf => val * val,
+            Op::Mul(n) => val * *n,
+            Op::Add(n) => val + *n,
+        }
+    }
 }
