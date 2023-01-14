@@ -150,7 +150,7 @@ fn calculate_heights_by_coord(matrix: &Matrix) -> HashMap<(usize, usize), Height
     // from top to bottom
     for col in 0..cols {
         let mut tallest_tree = 0;
-        for row in 0..rows {
+        for (row, _) in matrix.iter().enumerate().take(rows) {
             height_by_direction.get_mut(&(row, col)).unwrap().up = tallest_tree;
             let current_value = matrix[row][col].value;
             tallest_tree = max(tallest_tree, current_value);
@@ -158,7 +158,7 @@ fn calculate_heights_by_coord(matrix: &Matrix) -> HashMap<(usize, usize), Height
     }
 
     // from right to left
-    for row in 0..rows {
+    for (row, _) in matrix.iter().enumerate().take(rows) {
         let mut tallest_tree = 0;
         for col in (0..cols).rev() {
             height_by_direction.get_mut(&(row, col)).unwrap().right = tallest_tree;
@@ -178,7 +178,7 @@ fn calculate_heights_by_coord(matrix: &Matrix) -> HashMap<(usize, usize), Height
     }
 
     // from left to right
-    for row in 0..rows {
+    for (row, _) in matrix.iter().enumerate().take(rows) {
         let mut tallest_tree = 0;
         for col in 0..cols {
             height_by_direction.get_mut(&(row, col)).unwrap().left = tallest_tree;

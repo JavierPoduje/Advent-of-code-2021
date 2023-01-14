@@ -7,7 +7,7 @@ where
 {
     Ok(read_to_string(path)
         .unwrap()
-        .split("\n")
+        .split('\n')
         .filter_map(|line| line.parse::<T>().ok())
         .collect())
 }

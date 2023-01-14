@@ -8,7 +8,7 @@ pub fn solution() -> (String, String) {
         .into_iter()
         .filter(|row| !row.is_empty())
         .map(|row| {
-            let splitted: Vec<&str> = row.split(" ").collect();
+            let splitted: Vec<&str> = row.split(' ').collect();
 
             let char = splitted[0];
             let steps = splitted[1];
