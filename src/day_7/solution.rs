@@ -14,7 +14,7 @@ pub fn solution() -> (String, String) {
     let mut system = build_system(rows);
     let system = weigh_system(&mut system);
 
-    let part1 = calculate_part1(&system);
+    let part1 = calculate_part1(system);
 
     (part1, "B".to_string())
 }
@@ -36,7 +36,7 @@ fn build_system(rows: Vec<String>) -> HashMap<String, Dir> {
     let mut dirs_stack: Vec<String> = vec!["/".to_string()];
 
     for row in rows {
-        let line: Vec<&str> = row.split(" ").collect();
+        let line: Vec<&str> = row.split(' ').collect();
 
         match line[0] {
             "$" => match command(line[1]) {
@@ -74,7 +74,7 @@ fn build_system(rows: Vec<String>) -> HashMap<String, Dir> {
 fn weigh_system(system: &mut HashMap<String, Dir>) -> &mut HashMap<String, Dir> {
     let mut weight_by_dir_name = HashMap::<String, u64>::new();
     for (dir_name, _) in system.iter() {
-        let weight = weight_directory(&system, dir_name);
+        let weight = weight_directory(system, dir_name);
         weight_by_dir_name.insert(dir_name.to_string(), weight);
     }
 

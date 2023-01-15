@@ -13,7 +13,7 @@ pub fn solution() -> (String, String) {
         .map(|row| {
             row.split("")
                 .filter(|char| !char.is_empty())
-                .map(|char| Cell::new(char))
+                .map(Cell::new)
                 .collect()
         })
         .collect();

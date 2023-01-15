@@ -4,8 +4,10 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
     let pairs = parse();
+
     let part1 = part1(pairs.clone());
     let part2 = part2(pairs);
+
     (part1.to_string(), part2.to_string())
 }
 
@@ -63,7 +65,7 @@ fn parse() -> Vec<(Val, Val)> {
     pairs
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Ord)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 enum Val {
     Num(i32),
     List(Vec<Self>),
@@ -113,22 +115,11 @@ impl Val {
         match (self, other) {
             (Self::List(left), Self::List(right)) => {
                 let mut idx = 0;
-                loop {
-                    if left.len() <= idx || right.len() <= idx {
-                        if left.len() < right.len() {
-                            return Ordering::Less;
-                        } else if left.len() == right.len() {
-                            return Ordering::Equal;
-                        } else {
-                            return Ordering::Greater;
-                        }
-                    }
+                while idx < left.len() && idx < right.len() {
                     match (&left[idx], &right[idx]) {
                         (Self::Num(l), Self::Num(r)) => {
-                            if l < r {
-                                return Ordering::Less;
-                            } else if l > r {
-                                return Ordering::Greater;
+                            if l != r {
+                                return l.cmp(r);
                             }
                         }
                         (Self::List(_), Self::Num(r)) => {
@@ -152,6 +143,7 @@ impl Val {
                     }
                     idx += 1;
                 }
+                left.len().cmp(&right.len())
             }
             _ => panic!("bad input"),
         }
@@ -161,5 +153,11 @@ impl Val {
 impl PartialOrd for Val {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.compare(other))
+    }
+}
+
+impl Ord for Val {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }

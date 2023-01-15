@@ -12,7 +12,7 @@ pub fn solution() -> (String, String) {
     let elf_pairs: Vec<[Elf; 2]> = rows
         .iter()
         .map(|row| {
-            let pair: Vec<&str> = row.split(",").collect();
+            let pair: Vec<&str> = row.split(',').collect();
             [
                 Elf::new(pair.first().unwrap()),
                 Elf::new(pair.last().unwrap()),
@@ -66,7 +66,7 @@ struct Elf {
 
 impl Elf {
     pub fn new(row: &str) -> Self {
-        let pair: Vec<&str> = row.split("-").collect();
+        let pair: Vec<&str> = row.split('-').collect();
         let fst = pair.first().unwrap().parse::<i32>().unwrap();
         let scd = pair.last().unwrap().parse::<i32>().unwrap();
 

@@ -11,7 +11,7 @@ pub fn solution() -> (String, String) {
     let mut rows_for_scd: Vec<(Thing, Thing)> = Vec::new();
 
     for row in rows {
-        let splitted: Vec<&str> = row.as_str().split(" ").collect();
+        let splitted: Vec<&str> = row.as_str().split(' ').collect();
 
         let fst = splitted.first().unwrap();
         let scd = splitted.last().unwrap();

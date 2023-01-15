@@ -13,7 +13,7 @@ pub fn solution() -> (String, String) {
         rows.iter()
             .filter(|row| row.starts_with("move"))
             .fold(Vec::new(), |mut acc, row| {
-                let words: Vec<&str> = row.split(" ").collect();
+                let words: Vec<&str> = row.split(' ').collect();
                 let repetitions = words[1].parse::<i32>().unwrap();
                 let from = words[3].parse::<usize>().unwrap();
                 let to = words[5].parse::<usize>().unwrap();
@@ -76,10 +76,7 @@ fn build_initial_stacks(rows: Vec<&String>) -> HashMap<usize, VecDeque<String>> 
         HashMap::<usize, VecDeque<String>>::new(),
         |mut acc, item| {
             let joined = item.iter().collect::<String>();
-            acc.insert(
-                joined.clone().trim().parse::<usize>().unwrap(),
-                VecDeque::new(),
-            );
+            acc.insert(joined.trim().parse::<usize>().unwrap(), VecDeque::new());
             acc
         },
     );
@@ -90,7 +87,7 @@ fn build_initial_stacks(rows: Vec<&String>) -> HashMap<usize, VecDeque<String>> 
         for (idx, raw_item) in parsed_row.iter().enumerate() {
             let hash = hashes.get_mut(&(idx + 1)).unwrap();
             let joined = raw_item.iter().collect::<String>();
-            let trimmed = joined.trim().replace("[", "").replace("]", "");
+            let trimmed = joined.trim().replace(['[', ']'], "");
             if !trimmed.is_empty() {
                 hash.push_back(trimmed.to_string().to_owned());
             }

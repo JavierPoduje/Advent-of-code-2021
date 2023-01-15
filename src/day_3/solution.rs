@@ -10,7 +10,7 @@ pub fn solution() -> (String, String) {
         .collect();
 
     let mut part1 = 0;
-    for row in rows.clone() {
+    for row in rows {
         let vec_row: Vec<&str> = row.split("").filter(|value| value != &"").collect();
         let chunks: Vec<Vec<&str>> = vec_row
             .chunks(row.len() / 2)
@@ -23,11 +23,11 @@ pub fn solution() -> (String, String) {
         let left: HashSet<&str> = HashSet::from_iter(fst);
         let right: HashSet<&str> = HashSet::from_iter(scd);
 
-        let intersections = left
+        let intersections: u64 = left
             .clone()
             .intersection(&right)
-            .map(|char| prioritize(*char))
-            .fold(0, |sum, value| sum + value);
+            .map(|char| prioritize(char))
+            .sum();
 
         part1 += intersections;
     }
