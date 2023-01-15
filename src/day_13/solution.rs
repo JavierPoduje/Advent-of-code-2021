@@ -4,18 +4,45 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
     let pairs = parse();
-    let part1 = part1(pairs);
-    (part1.to_string(), "B".to_string())
+    let part1 = part1(pairs.clone());
+    let part2 = part2(pairs);
+    (part1.to_string(), part2.to_string())
 }
 
 fn part1(pairs: Vec<(Val, Val)>) -> usize {
     let mut sum = 0;
     for (idx, p) in pairs.iter().enumerate() {
-        if p.0.compare(&p.1) == Ordering::Less {
+        if p.0 < p.1 {
             sum += idx + 1;
         }
     }
     sum
+}
+
+fn part2(pairs: Vec<(Val, Val)>) -> usize {
+    let mut list = Vec::new();
+
+    for p in pairs.iter() {
+        list.push(p.0.clone());
+        list.push(p.1.clone());
+    }
+
+    let d2 = Val::parse("[[2]]");
+    let d6 = Val::parse("[[6]]");
+
+    list.push(d2.clone());
+    list.push(d6.clone());
+
+    list.sort();
+
+    let mut answer = 1;
+    for (idx, val) in list.iter().enumerate() {
+        if *val == d2 || *val == d6 {
+            answer *= idx + 1;
+        }
+    }
+
+    answer
 }
 
 fn parse() -> Vec<(Val, Val)> {
@@ -36,7 +63,7 @@ fn parse() -> Vec<(Val, Val)> {
     pairs
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone, Ord)]
 enum Val {
     Num(i32),
     List(Vec<Self>),
@@ -128,5 +155,11 @@ impl Val {
             }
             _ => panic!("bad input"),
         }
+    }
+}
+
+impl PartialOrd for Val {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.compare(other))
     }
 }
