@@ -10,6 +10,7 @@ mod day_15;
 mod day_17;
 mod day_18;
 mod day_19;
+mod day_20;
 mod day_2;
 mod day_3;
 mod day_4;
@@ -46,6 +47,7 @@ fn main() {
         "17" => day_17::solution::solution(),
         "18" => day_18::solution::solution(),
         "19" => day_19::solution::solution(),
+        "20" => day_20::solution::solution(),
         _ => unreachable!(),
     };
 
