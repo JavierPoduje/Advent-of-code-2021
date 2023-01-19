@@ -2,15 +2,16 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
     let blueprints = parse();
-    let part1 = part1(blueprints);
-    (part1.to_string(), "".to_string())
+    let part1 = part1(blueprints.clone());
+    let part2 = part2(blueprints);
+    (part1.to_string(), part2.to_string())
 }
 
 fn part1(blueprints: Vec<Blueprint>) -> usize {
     let mut quality = 0;
 
     for bp in &blueprints {
-        let best = mine_geods(bp);
+        let best = mine_geods(bp, 24);
         quality += bp.id * best;
         println!(
             "Blueprint id {} makes {best} geodes, quality = {quality}",
@@ -21,7 +22,15 @@ fn part1(blueprints: Vec<Blueprint>) -> usize {
     quality
 }
 
-fn mine_geods(bp: &Blueprint) -> usize {
+fn part2(blueprints: Vec<Blueprint>) -> usize {
+    let mut answer = 1;
+    for bp in blueprints.iter().take(3) {
+        answer *= mine_geods(bp, 32);
+    }
+    answer
+}
+
+fn mine_geods(bp: &Blueprint, time: usize) -> usize {
     let mut to_visit = Vec::new();
 
     let max_ore = bp
@@ -32,7 +41,7 @@ fn mine_geods(bp: &Blueprint) -> usize {
 
     to_visit.push(State {
         ore_bots: 1,
-        time_ramaining: 24,
+        time_ramaining: time,
         ..Default::default()
     });
     let mut best = 0;
@@ -43,9 +52,10 @@ fn mine_geods(bp: &Blueprint) -> usize {
             continue;
         }
 
-        let can_continue = state.ore_bots >= max_ore
-            && state.clay_bots >= max_clay
-            && state.obsidian_bots >= max_obsidian;
+        let can_continue = time < 50
+            || (state.ore_bots >= max_ore
+                && state.clay_bots >= max_clay
+                && state.obsidian_bots >= max_obsidian);
 
         if state.ore >= bp.geode_bot.0 && state.obsidian >= bp.geode_bot.1 {
             to_visit.push(state.make_geode_bot(bp));
@@ -99,7 +109,7 @@ fn parse() -> Vec<Blueprint> {
     blueprints
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Blueprint {
     id: usize,
     ore_bot: usize,
