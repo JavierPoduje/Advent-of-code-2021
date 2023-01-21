@@ -11,7 +11,7 @@ pub fn solution() -> (String, String) {
 
 fn part1(mut grove: Grove) -> i64 {
     for _ in 0..10 {
-        grove = grove.round();
+        grove = grove.round().unwrap();
     }
 
     let dim = grove.dimensions();
@@ -20,9 +20,16 @@ fn part1(mut grove: Grove) -> i64 {
     area - grove.elf_count()
 }
 
-fn part2(mut grove: Grove) -> i64 {
-
-    0
+fn part2(grove: Grove) -> i64 {
+    let mut count = 0;
+    let mut grove = Some(grove);
+    loop {
+        count += 1;
+        grove = grove.unwrap().round();
+        if grove.is_none() {
+            return count;
+        }
+    }
 }
 
 fn parse() -> Grove {
@@ -66,9 +73,10 @@ impl Grove {
         [(0, 1), (-1, 1), (1, 1)],
     ];
 
-    pub fn round(&self) -> Self {
+    pub fn round(&self) -> Option<Self> {
         let mut result = HashSet::new();
         let mut consider: HashMap<(i64, i64), (usize, (i64, i64))> = HashMap::new();
+        let mut moved = false;
 
         for g in &self.grove {
             let count = Self::DIR
@@ -80,6 +88,7 @@ impl Grove {
             if count == 0 {
                 result.insert(*g);
             } else {
+                moved = true;
                 let mut found = false;
                 for i in 0..4 {
                     let count = Self::CHECK[(i + self.dir) % Self::CHECK.len()]
@@ -115,9 +124,13 @@ impl Grove {
             }
         }
 
-        Self {
-            grove: result,
-            dir: (self.dir + 1) % Self::DIR.len(),
+        if moved {
+            Some(Self {
+                grove: result,
+                dir: (self.dir + 1) % Self::DIR.len(),
+            })
+        } else {
+            None
         }
     }
 
