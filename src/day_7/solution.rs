@@ -4,8 +4,28 @@ use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
     let cwd = parse();
-    let part1 = part1(cwd);
-    (part1.to_string(), "B".to_string())
+    let part1 = part1(cwd.clone());
+    let part2 = part2(cwd);
+    (part1.to_string(), part2.to_string())
+}
+
+fn part2(root: Rc<Dir>) -> usize {
+    let total_size = root.get_size();
+    let free_space = 70000000 - total_size;
+    let space_needed = 30000000 - free_space;
+
+    let mut to_visit = vec![Rc::clone(&root)];
+
+    let mut best = usize::MAX;
+    while let Some(dir) = to_visit.pop() {
+        to_visit.extend(dir.subdir.borrow().values().map(Rc::clone));
+        let size = dir.get_size();
+        if size >= space_needed {
+            best = best.min(size);
+        }
+    }
+
+    best
 }
 
 fn part1(root: Rc<Dir>) -> usize {
@@ -13,10 +33,7 @@ fn part1(root: Rc<Dir>) -> usize {
 
     let mut total = 0;
     while let Some(dir) = to_visit.pop() {
-        for d in dir.subdir.borrow().values() {
-            to_visit.push(Rc::clone(d));
-        }
-
+        to_visit.extend(dir.subdir.borrow().values().map(Rc::clone));
         let size = dir.get_size();
         if size <= 100000 {
             total += size;
@@ -42,7 +59,7 @@ fn parse() -> Rc<Dir> {
             ("$", "ls") => {}
             ("$", "cd") => match words[2] {
                 "/" => cwd = Rc::clone(&root),
-                ".." => cwd = Rc::clone(&cwd.parent.as_ref().unwrap()),
+                ".." => cwd = Rc::clone(cwd.parent.as_ref().unwrap()),
                 dirname => {
                     let newdir = cwd.subdir.borrow().get(dirname).unwrap().clone();
                     cwd = newdir;
