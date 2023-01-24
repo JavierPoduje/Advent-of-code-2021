@@ -3,92 +3,58 @@ use std::collections::HashSet;
 use super::super::utils::read_one_per_line::read_one_per_line;
 
 pub fn solution() -> (String, String) {
-    let rows: Vec<String> = read_one_per_line::<String>("./src/day_3/input.txt")
+    let lines = parse();
+    let part1 = part1(lines.clone());
+    let part2 = part2(lines);
+    (part1.to_string(), part2.to_string())
+}
+
+fn part2(input_lines: Vec<String>) -> i32 {
+    let mut sum = 0;
+
+    for lines in input_lines.chunks(3) {
+        let mut sets = lines
+            .iter()
+            .map(|l| HashSet::from_iter(l.chars()))
+            .collect::<Vec<HashSet<char>>>();
+        let mut dup = sets.pop().unwrap();
+        for set in sets {
+            dup = set.intersection(&dup).copied().collect();
+        }
+        let ch = *dup.iter().next().unwrap();
+        sum += match ch {
+            'a'..='z' => (ch as u8) - b'a' + 1,
+            'A'..='Z' => (ch as u8) - b'A' + 27,
+            _ => panic!("bad input"),
+        } as i32;
+    }
+
+    sum
+}
+
+fn part1(lines: Vec<String>) -> i32 {
+    let mut sum = 0;
+    for line in &lines {
+        let len = line.len() / 2;
+        let (left, right) = (&line[0..len], &line[len..]);
+        let left: HashSet<char> = HashSet::from_iter(left.chars());
+        let right: HashSet<char> = HashSet::from_iter(right.chars());
+        let dup: HashSet<&char> = left.intersection(&right).collect();
+        let ch = **dup.iter().next().unwrap();
+
+        sum += match ch {
+            'a'..='z' => (ch as u8) - b'a' + 1,
+            'A'..='Z' => (ch as u8) - b'A' + 27,
+            _ => panic!("bad input"),
+        } as i32;
+    }
+    sum
+}
+
+fn parse() -> Vec<String> {
+    read_one_per_line::<String>("./src/day_3/input.txt")
         .unwrap()
         .into_iter()
         .filter(|row| !row.is_empty())
-        .collect();
-
-    let mut part1 = 0;
-    for row in rows {
-        let vec_row: Vec<&str> = row.split("").filter(|value| value != &"").collect();
-        let chunks: Vec<Vec<&str>> = vec_row
-            .chunks(row.len() / 2)
-            .map(|chunk| chunk.to_vec())
-            .collect();
-
-        let fst = chunks.clone().first().unwrap().to_owned();
-        let scd = chunks.clone().last().unwrap().to_owned();
-
-        let left: HashSet<&str> = HashSet::from_iter(fst);
-        let right: HashSet<&str> = HashSet::from_iter(scd);
-
-        let intersections: u64 = left
-            .clone()
-            .intersection(&right)
-            .map(|char| prioritize(char))
-            .sum();
-
-        part1 += intersections;
-    }
-
-    (part1.to_string(), 0.to_string())
-}
-
-fn prioritize(char: &str) -> u64 {
-    match char {
-        "a" => 1,
-        "b" => 2,
-        "c" => 3,
-        "d" => 4,
-        "e" => 5,
-        "f" => 6,
-        "g" => 7,
-        "h" => 8,
-        "i" => 9,
-        "j" => 10,
-        "k" => 11,
-        "l" => 12,
-        "m" => 13,
-        "n" => 14,
-        "o" => 15,
-        "p" => 16,
-        "q" => 17,
-        "r" => 18,
-        "s" => 19,
-        "t" => 20,
-        "u" => 21,
-        "v" => 22,
-        "w" => 23,
-        "x" => 24,
-        "y" => 25,
-        "z" => 26,
-        "A" => 27,
-        "B" => 28,
-        "C" => 29,
-        "D" => 30,
-        "E" => 31,
-        "F" => 32,
-        "G" => 33,
-        "H" => 34,
-        "I" => 35,
-        "J" => 36,
-        "K" => 37,
-        "L" => 38,
-        "M" => 39,
-        "N" => 40,
-        "O" => 41,
-        "P" => 42,
-        "Q" => 43,
-        "R" => 44,
-        "S" => 45,
-        "T" => 46,
-        "U" => 47,
-        "V" => 48,
-        "W" => 49,
-        "X" => 50,
-        "Y" => 51,
-        "Z" => 52,
-        _ => unreachable!(),
-    }
+        .collect()
 }
